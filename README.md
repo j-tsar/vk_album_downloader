@@ -4,9 +4,9 @@ Python script to download list of albums (including albums from private communit
 ## Installation ##
 In order to use this script you need to install [Python 3](https://www.python.org/downloads/).
 
-You also need additional **vk_api** module. Clone its repo from Github to your local storage (e.g. folder where you have cloned the downloader) and write in CMD:
+You also need additional [vk_api](https://github.com/python273/vk_api) module. Clone its repo from Github to your local storage (e.g. folder where you have cloned the downloader) and write in CMD:
 
-`$ cd vk_api`
+`$ cd vk_api`\
 `$ py setup.py install`
 
 **NOTE:** the pypi version of **vk_api** module doesn't work as of March 2025. Use the method provided above instead.
