@@ -1,5 +1,7 @@
 .idea/
 venv/
+vk_downloaded_albums/
+.vscode/
 *.log
 *.json
 *.txt
