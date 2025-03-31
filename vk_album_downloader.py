@@ -97,15 +97,24 @@ def gather_comments(api, o, a):
     comments = []
     temp = []
     i = 0
-    while True:
-        temp += api.photos.getAllComments(owner_id=o, album_id=a, need_likes=1, offset=i, count=100)['items']
-        comments += temp
-        if len(temp) < 100:
-            break
 
-        temp.clear()
-        i += 100
-    return comments
+    try:
+        if a in SERVICE_IDS.values():
+            a = list(SERVICE_IDS.keys())[list(SERVICE_IDS.values()).index(a)]
+
+        while True:
+            temp += api.photos.getAllComments(owner_id=o, album_id=a, need_likes=1, offset=i, count=100)['items']
+            comments += temp
+            if len(temp) < 100:
+                break
+
+            temp.clear()
+            i += 100
+        return comments
+    except vk_api.exceptions.ApiError as e:
+            print('comments export exception: ')
+            print(e)
+            return
 
 
 PAT_ILLEGAL_CHARS = re.compile(r'[/|:?<>*"\\]')
@@ -184,6 +193,8 @@ def main():
         if not os.path.exists(album_path):
             os.makedirs(album_path)
 
+        print("=======================")
+        print('downloading album: ' + a)
         if args.export_metadata:
             metadata_album = open(os.path.join(album_path, 'album.csv'),
                                     'w', newline='', encoding="utf-8-sig")
@@ -194,16 +205,17 @@ def main():
             writer.writerow(row_data)
             metadata_album.close()
 
-            metadata_comments = open(os.path.join(album_path, 'comments.csv'),
-                                     'w', newline='', encoding="utf-8-sig")
-            comments = gather_comments(api, o, a) if args.export_metadata else None
-            fieldnames_comments = list(comments[0].keys())
-            writer = csv.DictWriter(metadata_comments, fieldnames=fieldnames_comments)
-            writer.writeheader()
-            for i in range(len(comments)):
-                row_data = {key: value for key, value in zip(fieldnames_comments, comments[i].values())}
-                writer.writerow(row_data)
-            metadata_comments.close()
+            comments = gather_comments(api, o, a)
+            if comments:
+                metadata_comments = open(os.path.join(album_path, 'comments.csv'),
+                                        'w', newline='', encoding="utf-8-sig")
+                fieldnames_comments = list(comments[0].keys())
+                writer = csv.DictWriter(metadata_comments, fieldnames=fieldnames_comments)
+                writer.writeheader()
+                for i in range(len(comments)):
+                    row_data = {key: value for key, value in zip(fieldnames_comments, comments[i].values())}
+                    writer.writerow(row_data)
+                metadata_comments.close()
 
             metadata_photos = open(os.path.join(album_path, 'photos.csv'),
                                    'w', newline='', encoding="utf-8-sig")
@@ -211,7 +223,6 @@ def main():
             writer = csv.DictWriter(metadata_photos, fieldnames=fieldnames_photos)
             writer.writeheader()
 
-        print('downloading album: ' + a)
         cnt = 0
         for p in photos:
             largest_image_width = p['sizes'][0]['width']
